@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rental Services Application</title>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700;900&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --brown: #7B4A24;
+    --brown-light: #8D5A30;
+    --brown-dark: #5C3518;
+    --cream: #F9F6F1;
+    --white: #FFFFFF;
+    --text: #222;
+    --muted: #888;
+    --border: #e0d8cf;
+    --success: #4CAF82;
+    --danger: #d9534f;
+  }
+  body { font-family: 'Open Sans', sans-serif; background: #c8b5a0; min-height: 100vh; }
+
+  /* COVER */
+  #cover {
+    position: fixed; inset: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: center;
+    background: url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1600&q=80') center/cover no-repeat;
+  }
+  .cover-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.45); }
+  .cover-box {
+    position: relative; z-index: 2; text-align: center;
+    background: rgba(0,0,0,0.38); backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: 3rem 3.5rem; max-width: 680px; width: 90%;
+    border-radius: 6px; animation: fadeUp 0.8s ease;
+  }
+  .cover-box h1 {
+    font-family: 'Raleway', sans-serif;
+    font-size: clamp(1.6rem, 4vw, 2.6rem); font-weight: 900;
+    color: #fff; text-transform: uppercase; letter-spacing: 1px;
+    line-height: 1.2; margin-bottom: 1rem;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+  }
+  .cover-box p { color: rgba(255,255,255,0.75); font-size: 0.9rem; margin-bottom: 2rem; line-height: 1.6; }
+  .btn-start {
+    background: var(--brown); color: #fff; border: none;
+    padding: 13px 40px; font-family: 'Raleway', sans-serif;
+    font-size: 0.85rem; font-weight: 700; letter-spacing: 3px;
+    text-transform: uppercase; cursor: pointer; border-radius: 4px; transition: all 0.3s;
+  }
+  .btn-start:hover { background: var(--brown-light); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(123,74,36,0.5); }
+
+  /* MODAL */
+  #modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(6px);
+    display: none; align-items: center; justify-content: center;
+  }
+  #modal-overlay.show { display: flex; }
+  .modal-box {
+    background: #fff; border-radius: 8px; padding: 2.5rem 2rem;
+    max-width: 400px; width: 90%; animation: slideUp 0.4s ease; text-align: center;
+  }
+  .modal-box h2 { font-family: 'Raleway', sans-serif; font-size: 1.4rem; color: var(--brown); margin-bottom: 0.4rem; }
+  .modal-box p { font-size: 0.83rem; color: var(--muted); margin-bottom: 1.5rem; }
+  .modal-input {
+    width: 100%; border: none; border-bottom: 2px solid var(--border);
+    padding: 10px 4px; font-size: 1rem; font-family: 'Open Sans', sans-serif;
+    outline: none; color: var(--text); transition: border-color 0.2s; background: transparent;
+  }
+  .modal-input:focus { border-color: var(--brown); }
+  .modal-actions { display: flex; gap: 1rem; margin-top: 1.8rem; }
+  .btn-cancel {
+    flex: 1; padding: 11px; background: #f5f5f5; border: none;
+    font-family: 'Raleway', sans-serif; font-size: 0.8rem; font-weight: 700;
+    letter-spacing: 1px; color: #666; cursor: pointer; border-radius: 4px; transition: background 0.2s;
+  }
+  .btn-cancel:hover { background: #eee; }
+  .btn-go {
+    flex: 2; padding: 11px; background: #1A5CC8; border: none;
+    font-family: 'Raleway', sans-serif; font-size: 0.8rem; font-weight: 700;
+    letter-spacing: 2px; color: #fff; text-transform: uppercase;
+    cursor: pointer; border-radius: 4px; transition: background 0.2s;
+  }
+  .btn-go:hover { background: #174eaa; }
+
+  /* APP */
+  #app { display: none; position: relative; z-index: 10; padding-bottom: 100px; }
+  #app.show { display: block; }
+
+  .form-banner {
+    background: url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1600&q=80') center 30%/cover no-repeat;
+    position: relative; padding: 3.5rem 2rem 2.5rem; text-align: center;
+  }
+  .form-banner::before { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.45); }
+  .form-banner h1 {
+    position: relative; z-index: 2;
+    font-family: 'Raleway', sans-serif; font-size: clamp(1.3rem, 3.5vw, 2.2rem);
+    font-weight: 900; color: #fff; text-transform: uppercase; letter-spacing: 1px;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.5); max-width: 700px; margin: 0 auto;
+  }
+
+  .form-wrap { max-width: 780px; margin: 0 auto; padding: 2rem 1rem; display: flex; flex-direction: column; gap: 1rem; }
+
+  .q-card { background: var(--white); border-radius: 4px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.15); animation: fadeUp 0.4s ease; }
+  .q-header { background: var(--brown); padding: 14px 20px; }
+  .q-header span { font-family: 'Raleway', sans-serif; font-size: 1rem; font-weight: 700; color: #fff; line-height: 1.3; }
+  .q-body { padding: 20px 20px 16px; }
+
+  .q-input {
+    width: 100%; border: none; border-bottom: 1px solid #ccc;
+    padding: 8px 0; font-size: 0.95rem; font-family: 'Open Sans', sans-serif;
+    color: var(--text); outline: none; background: transparent; transition: border-color 0.2s;
+  }
+  .q-input:focus { border-color: var(--brown); }
+  .q-input.invalid { border-color: var(--danger); }
+  .q-textarea {
+    width: 100%; border: none; border-bottom: 1px solid #ccc;
+    padding: 8px 0; font-size: 0.95rem; font-family: 'Open Sans', sans-serif;
+    color: var(--text); outline: none; background: transparent; resize: vertical; min-height: 60px;
+  }
+  .q-textarea:focus { border-color: var(--brown); }
+  .q-select {
+    width: 100%; border: none; border-bottom: 1px solid #ccc;
+    padding: 8px 0; font-size: 0.95rem; font-family: 'Open Sans', sans-serif;
+    color: var(--text); outline: none; background: transparent; cursor: pointer;
+    -webkit-appearance: none;
+  }
+  .q-select:focus { border-color: var(--brown); }
+
+  .req-badge {
+    display: inline-block; margin-top: 12px;
+    background: #f0ece8; color: var(--brown);
+    font-size: 0.75rem; font-weight: 600; padding: 4px 12px;
+    border-radius: 20px; border: 1px solid rgba(123,74,36,0.2);
+  }
+
+  /* Type pills */
+  .type-pills { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 10px; }
+  .type-pill {
+    padding: 8px 18px; border: 2px solid var(--border); border-radius: 30px;
+    font-size: 0.85rem; cursor: pointer; transition: all 0.2s; color: var(--text);
+    background: var(--cream); user-select: none;
+  }
+  .type-pill:hover { border-color: var(--brown); }
+  .type-pill.selected { background: var(--brown); border-color: var(--brown); color: #fff; }
+
+  /* Upload */
+  .upload-btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--brown); color: #fff; border: none;
+    padding: 12px 24px; border-radius: 4px; font-family: 'Open Sans', sans-serif;
+    font-size: 0.9rem; font-weight: 600; cursor: pointer; margin-top: 4px; transition: background 0.2s;
+  }
+  .upload-btn:hover { background: var(--brown-light); }
+  .upload-btn svg { width: 18px; height: 18px; fill: #fff; }
+  .file-info { font-size: 0.78rem; color: var(--muted); margin-top: 10px; }
+  .file-info strong { color: var(--text); }
+  .file-chosen { font-size: 0.82rem; color: var(--brown); margin-top: 6px; font-weight: 600; }
+
+  /* Actions */
+  .form-actions { display: flex; flex-direction: column; gap: 12px; max-width: 780px; margin: 0 auto; padding: 0 1rem; }
+  .btn-clear {
+    align-self: flex-start; background: transparent; border: 1px solid var(--brown);
+    color: var(--brown); padding: 10px 22px; font-family: 'Raleway', sans-serif;
+    font-size: 0.85rem; font-weight: 700; cursor: pointer; border-radius: 4px; transition: all 0.2s;
+  }
+  .btn-clear:hover { background: var(--cream); }
+  .btn-submit {
+    align-self: flex-end; background: var(--brown); border: none; color: #fff;
+    padding: 13px 36px; font-family: 'Raleway', sans-serif; font-size: 0.85rem;
+    font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer;
+    border-radius: 4px; transition: all 0.2s; display: flex; align-items: center; gap: 8px;
+  }
+  .btn-submit:hover { background: var(--brown-light); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(123,74,36,0.35); }
+  .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  /* Answered bar */
+  #answered-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(255,255,255,0.96); backdrop-filter: blur(6px);
+    border-top: 1px solid var(--border); padding: 12px 20px;
+    text-align: center; font-size: 0.9rem; color: #444;
+    z-index: 90; box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+  }
+  #answered-bar span { font-weight: 700; color: var(--brown); }
+
+  /* Toast */
+  #toast {
+    position: fixed; top: 20px; right: 20px;
+    background: var(--brown-dark); color: #fff;
+    padding: 12px 20px; border-radius: 6px; font-size: 0.85rem;
+    z-index: 999; transform: translateY(-60px); opacity: 0; transition: all 0.4s ease; max-width: 280px;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+  #toast.success { background: var(--success); }
+  #toast.error { background: var(--danger); }
+
+  /* Success */
+  #success-screen { display: none; text-align: center; padding: 5rem 2rem; flex-direction: column; align-items: center; }
+  #success-screen.show { display: flex; }
+  .success-circle {
+    width: 90px; height: 90px; background: rgba(76,175,130,0.1);
+    border: 3px solid var(--success); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.5rem; margin-bottom: 1.5rem; animation: popIn 0.6s ease;
+  }
+  .success-title { font-family: 'Raleway', sans-serif; font-size: 1.8rem; color: #fff; margin-bottom: 0.8rem; text-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+  .success-sub { color: rgba(255,255,255,0.85); font-size: 0.9rem; max-width: 380px; line-height: 1.6; margin-bottom: 2rem; }
+
+  .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  .scroll-top { position: fixed; bottom: 60px; right: 20px; z-index: 80; width: 44px; height: 44px; border-radius: 50%; background: var(--brown-dark); border: none; color: #fff; font-size: 1.1rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 600px) {
+    .cover-box { padding: 2rem 1.5rem; }
+    .modal-actions { flex-direction: column; }
+    .btn-submit, .btn-clear { align-self: stretch; text-align: center; justify-content: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div id="cover">
+  <div class="cover-overlay"></div>
+  <div class="cover-box">
+    <h1>Rental Services<br>Application Form</h1>
+    <p>Property · Vehicle · Equipment Rentals<br>Please fill in all details to submit your rental request.</p>
+    <button class="btn-start" onclick="openModal()">START SURVEY</button>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="modal-overlay">
+  <div class="modal-box">
+    <h2>Enter your Details</h2>
+    <p>We'll use this to identify your application.</p>
+    <input class="modal-input" type="text" id="modal-name" placeholder="Name" autocomplete="name">
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">CANCEL</button>
+      <button class="btn-go" onclick="startForm()">START FORM</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="form-banner">
+    <h1>Rental Services Application Form</h1>
+  </div>
+
+  <div class="form-wrap" id="form-wrap">
+
+    <div class="q-card" data-q="1">
+      <div class="q-header"><span>1. Full Name</span></div>
+      <div class="q-body">
+        <input class="q-input" type="text" id="fullname" oninput="updateCount(this)">
+        <div class="req-badge">Required</div>
+      </div>
+    </div>
+
+    <div class="q-card" data-q="2">
+      <div class="q-header"><span>2. Email Address</span></div>
+      <div class="q-body">
+        <input class="q-input" type="email" id="email" oninput="updateCount(this)">
+        <div class="req-badge">Required</div>
+      </div>
+    </div>
+
+    <div class="q-card" data-q="3">
+      <div class="q-header"><span>3. Phone Number (No VoIP)</span></div>
+      <div class="q-body">
+        <input class="q-input" type="tel" id="phone" oninput="updateCount(this)">
+        <div class="req-badge">Required</div>
+      </div>
+    </div>
+
+    <div class="q-card" data-q="4">
+      <div class="q-header"><span>4. Current Residential Address</span></div>
+      <div class="q-body">
+        <textarea class="q-textarea" id="address" oninput="updateCount(this)"></textarea>
+        <div class="req-badge">Required</div>
+      </div>
+    </div>
+
+    <div class="q-card" data-q="5">
+      <div class="q-header"><span>5. National ID / Passport Number</span></div>
+      <div class="q-body">
+        <input class="q-input" type="text" id="national-id" oninput="updateCount(this)">
+        <div class="req-badge">Required</div>
+      </div>
+    </div>
+
+    <div class="q-card" data-q="6">
+      <div class="q-header"><span>6. Type of Rental</span></div>
+      <div class="q-body">
+        <div class="type-pills" id="rental-type-wrap">
+          <div class="type-pill" onclick="selectPill(this)">🏠 Property / Apartment</div>
+          <div class="type-pill" onclick="selectPill(this)">🚗 Vehicle / Car</div>
+          <div class="type-pill" onclick="selectPill(this)">🔧 Equipment / Machinery</div>
+          <div class="type-pill" onclick="selectPill(this)">📦 Other</div>
+        </div>
+        <input type="hidden" id="rental-type">
+        <div class="req-badge">Required</div>
+      </div>
+    </div>
+
+    <div class="q-card" data-q="7">
+      <div class="q-header"><span>7. Item / Property Description</span></div>
+      <div class="q-body">
+        <input class="q-input" type="text" id="rental-item" placeholder="e.g. 3-bedroom apartment / Toyota Camry 2021 / Excavator" oninput="updateCount(this)">
+        <div class="req-badge">Required</div>
+      </div>
+    </div>
+
+    <div class="q-card" data-q="8">
+      <div class="q-header"><span>8. Preferred Rental Start Date</span></div>
+      <div class="q-body">
+        <input class="q-input" type="date" id="start-date" oninput="updateCount(this)">
+        <div class="req-badge">Required</div>
+      </div>
+    </div>
+
+    <div class="q-card" data-q="9">
+      <div class="q-header"><span>9. Preferred Rental End Date</span></div>
+      <div class="q-body">
+        <input class="q-input" type="date" id="end-date" oninput="updateCount(this)">
+        <div class="req-badge">Required</div>
+      </div>
+    </div>
+
+    <div class="q-card" data-q="10">
+      <div class="q-header"><span>10. Upload Front of Driver's License / ID</span></div>
+      <div class="q-body">
+        <label class="upload-btn" for="upload-front">
+          <svg viewBox="0 0 24 24"><path d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+          Upload
+        </label>
+        <input type="file" id="upload-front" accept="image/*,.pdf" style="display:none" onchange="fileChosen(this,'front-name',10)">
+        <p class="file-info">* Maximum allowed file size is <strong>50MB</strong>.</p>
+        <p class="file-chosen" id="front-name"></p>
+        <div class="req-badge">Required</div>
+      </div>
+    </div>
+
+    <div class="q-card" data-q="11">
+      <div class="q-header"><span>11. Upload Back of Driver's License / ID</span></div>
+      <div class="q-body">
+        <label class="upload-btn" for="upload-back">
+          <svg viewBox="0 0 24 24"><path d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+          Upload
+        </label>
+        <input type="file" id="upload-back" accept="image/*,.pdf" style="display:none" onchange="fileChosen(this,'back-name',11)">
+        <p class="file-info">* Maximum allowed file size is <strong>50MB</strong>.</p>
+        <p class="file-chosen" id="back-name"></p>
+        <div class="req-badge">Required</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="success-screen">
+    <div class="success-circle">✓</div>
+    <h2 class="success-title">Application Submitted!</h2>
+    <p class="success-sub">Your rental application has been received and sent to our team. We'll contact you via email or phone shortly.</p>
+    <button class="btn-start" onclick="location.reload()">Submit Another</button>
+  </div>
+
+  <div class="form-actions" id="form-actions">
+    <button class="btn-clear" onclick="clearForm()">Clear form</button>
+    <button class="btn-submit" id="btn-submit" onclick="submitForm()">SUBMIT APPLICATION</button>
+  </div>
+</div>
+
+<div id="answered-bar">Answered <span id="answered-count">0</span> of 11</div>
+<button class="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">↑</button>
+<div id="toast"></div>
+
+<script>
+  // =============================================
+  // EMAIL CONFIG — Replace with your Formspree ID
+  // Steps:
+  //   1. Go to https://formspree.io
+  //   2. Sign up FREE using oloyedetoby@gmail.com
+  //   3. Click "New Form" → give it any name
+  //   4. Copy your form ID (e.g. "xpwzdkqb")
+  //   5. Replace YOUR_FORM_ID below with your ID
+  const FORMSPREE_ID = "YOUR_FORM_ID";
+  // =============================================
+
+  const TOTAL = 11;
+  let answered = new Set();
+  let rentalType = "";
+
+  function openModal() {
+    document.getElementById("modal-overlay").classList.add("show");
+    setTimeout(() => document.getElementById("modal-name").focus(), 200);
+  }
+  function closeModal() {
+    document.getElementById("modal-overlay").classList.remove("show");
+  }
+  function startForm() {
+    const name = document.getElementById("modal-name").value.trim();
+    if (!name) { showToast("Please enter your name.", "error"); return; }
+    document.getElementById("fullname").value = name;
+    markAnswered(1);
+    closeModal();
+    document.getElementById("cover").style.display = "none";
+    document.getElementById("app").classList.add("show");
+  }
+
+  function updateCount(el) {
+    const q = parseInt(el.closest(".q-card").getAttribute("data-q"));
+    if (el.value.trim()) markAnswered(q); else unmarkAnswered(q);
+  }
+  function markAnswered(q) { answered.add(q); document.getElementById("answered-count").textContent = answered.size; }
+  function unmarkAnswered(q) { answered.delete(q); document.getElementById("answered-count").textContent = answered.size; }
+
+  function selectPill(el) {
+    document.querySelectorAll(".type-pill").forEach(p => p.classList.remove("selected"));
+    el.classList.add("selected");
+    rentalType = el.textContent.trim();
+    document.getElementById("rental-type").value = rentalType;
+    markAnswered(6);
+  }
+
+  function fileChosen(input, nameId, q) {
+    const file = input.files[0];
+    const label = document.getElementById(nameId);
+    if (file) {
+      if (file.size > 50 * 1024 * 1024) { showToast("File too large! Max 50MB.", "error"); input.value = ""; label.textContent = ""; return; }
+      label.textContent = "✓ " + file.name;
+      markAnswered(q);
+    }
+  }
+
+  function clearForm() {
+    if (!confirm("Clear all answers?")) return;
+    document.querySelectorAll(".q-input, .q-textarea").forEach(el => el.value = "");
+    document.querySelectorAll(".type-pill").forEach(p => p.classList.remove("selected"));
+    document.getElementById("rental-type").value = "";
+    ["upload-front","upload-back"].forEach(id => document.getElementById(id).value = "");
+    ["front-name","back-name"].forEach(id => document.getElementById(id).textContent = "");
+    rentalType = "";
+    answered.clear();
+    document.getElementById("answered-count").textContent = "0";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function showToast(msg, type = "") {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.className = "show " + type;
+    setTimeout(() => { t.className = ""; }, 3500);
+  }
+
+  function validate() {
+    const fields = [
+      {id:"fullname",q:1,label:"Full Name"},
+      {id:"email",q:2,label:"Email Address"},
+      {id:"phone",q:3,label:"Phone Number"},
+      {id:"address",q:4,label:"Address"},
+      {id:"national-id",q:5,label:"National ID"},
+      {id:"rental-item",q:7,label:"Item Description"},
+      {id:"start-date",q:8,label:"Start Date"},
+      {id:"end-date",q:9,label:"End Date"},
+    ];
+    for (const f of fields) {
+      const el = document.getElementById(f.id);
+      if (!el.value.trim()) {
+        el.classList.add("invalid");
+        el.scrollIntoView({behavior:"smooth",block:"center"});
+        showToast(`"${f.label}" is required.`, "error");
+        return false;
+      }
+      el.classList.remove("invalid");
+    }
+    if (!rentalType) {
+      document.getElementById("rental-type-wrap").scrollIntoView({behavior:"smooth",block:"center"});
+      showToast("Please select a type of rental.", "error");
+      return false;
+    }
+    if (!document.getElementById("upload-front").files[0]) {
+      document.querySelector('[data-q="10"]').scrollIntoView({behavior:"smooth",block:"center"});
+      showToast("Please upload the front of your ID.", "error");
+      return false;
+    }
+    if (!document.getElementById("upload-back").files[0]) {
+      document.querySelector('[data-q="11"]').scrollIntoView({behavior:"smooth",block:"center"});
+      showToast("Please upload the back of your ID.", "error");
+      return false;
+    }
+    const s = document.getElementById("start-date").value;
+    const e = document.getElementById("end-date").value;
+    if (s && e && e < s) { showToast("End date must be after start date.", "error"); return false; }
+    return true;
+  }
+
+  async function submitForm() {
+    if (!validate()) return;
+    const btn = document.getElementById("btn-submit");
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div>&nbsp; SENDING...';
+
+    const fd = new FormData();
+    fd.append("_subject", `New Rental Application – ${document.getElementById("fullname").value} (${rentalType})`);
+    fd.append("_replyto", document.getElementById("email").value);
+    fd.append("Full Name", document.getElementById("fullname").value);
+    fd.append("Email", document.getElementById("email").value);
+    fd.append("Phone Number", document.getElementById("phone").value);
+    fd.append("Address", document.getElementById("address").value);
+    fd.append("National ID / Passport", document.getElementById("national-id").value);
+    fd.append("Type of Rental", rentalType);
+    fd.append("Item / Property Description", document.getElementById("rental-item").value);
+    fd.append("Rental Start Date", document.getElementById("start-date").value);
+    fd.append("Rental End Date", document.getElementById("end-date").value);
+    const ff = document.getElementById("upload-front").files[0];
+    const bf = document.getElementById("upload-back").files[0];
+    if (ff) fd.append("ID Front", ff);
+    if (bf) fd.append("ID Back", bf);
+
+    try {
+      if (FORMSPREE_ID === "YOUR_FORM_ID") {
+        await new Promise(r => setTimeout(r, 1500));
+        showSuccess(); return;
+      }
+      const res = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+        method: "POST", headers: { "Accept": "application/json" }, body: fd
+      });
+      if (res.ok) { showSuccess(); }
+      else { throw new Error(); }
+    } catch {
+      showToast("Submission failed. Please check your Formspree ID.", "error");
+      btn.disabled = false;
+      btn.innerHTML = "SUBMIT APPLICATION";
+    }
+  }
+
+  function showSuccess() {
+    document.getElementById("form-wrap").style.display = "none";
+    document.getElementById("form-actions").style.display = "none";
+    document.getElementById("answered-bar").style.display = "none";
+    document.querySelector(".scroll-top").style.display = "none";
+    document.getElementById("success-screen").classList.add("show");
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+
+  document.addEventListener("input", e => {
+    if (e.target.classList.contains("q-input") || e.target.classList.contains("q-textarea"))
+      e.target.classList.remove("invalid");
+  });
+  document.getElementById("modal-name").addEventListener("keydown", e => { if (e.key === "Enter") startForm(); });
+</script>
+</body>
+</html>
