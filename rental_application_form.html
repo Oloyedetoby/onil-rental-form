@@ -403,9 +403,6 @@
 <script>
   // =============================================
   // EMAIL CONFIG
-  // Using FormSubmit.co to allow FREE direct file attachments!
-  // IMPORTANT: After your first test submission, check your email
-  // and click "Activate" in the email FormSubmit sends you.
   const RECIPIENT_EMAIL = "oloyedetoby@gmail.com";
   // =============================================
 
@@ -489,9 +486,7 @@
   function clearForm() {
     if (!confirm("Clear all answers?")) return;
     document.querySelectorAll(".q-input, .q-textarea").forEach(el => el.value = "");
-    document.getElementById("address-state").value = "";
-    ["upload-front","upload-back"].forEach(id => document.getElementById(id).value = "");
-    ["front-name","back-name"].forEach(id => document.getElementById(id).textContent = "");
+    document.getElementById("address-state").value = "";["upload-front","upload-back"].forEach(id => document.getElementById(id).value = "");["front-name","back-name"].forEach(id => document.getElementById(id).textContent = "");
     answered.clear();
     document.getElementById("answered-count").textContent = "0";
     window.scrollTo({ top: 0, behavior: "smooth" });
